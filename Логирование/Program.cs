@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Логирование
 {
@@ -15,9 +11,9 @@ namespace Логирование
             {
                 new FileLogWritter(),
                 new ConsoleLogWritter(),
-                new DefiniteLogWriter(new ConsoleLogWritter()),
-                new DefiniteLogWriter(new FileLogWritter()),
-                new DefiniteConsoleLogWritter(new ConsoleLogWritter(), new DefiniteLogWriter(new FileLogWritter())),
+                new DayOfWeekLogWriter(new ConsoleLogWritter(), DayOfWeek.Friday),
+                new DayOfWeekLogWriter(new FileLogWritter(), DayOfWeek.Friday),
+                new CompositeLogWritter(new ConsoleLogWritter(), new DayOfWeekLogWriter(new FileLogWritter(), DayOfWeek.Friday)),
             };
 
             foreach (ILogger logger in loggers)
@@ -63,29 +59,31 @@ namespace Логирование
         }
     }
 
-    class DefiniteLogWriter : ILogger
+    class DayOfWeekLogWriter : ILogger
     {
         private readonly ILogger _logger;
+        private readonly DayOfWeek _dayOfWeek;
 
-        public DefiniteLogWriter(ILogger logger)
+        public DayOfWeekLogWriter(ILogger logger, DayOfWeek dayOfWeek)
         {
             _logger = logger;
+            _dayOfWeek = dayOfWeek;
         }
 
         public void WriteError(string message)
         {
-            if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+            if (DateTime.Now.DayOfWeek == _dayOfWeek)
             {
                 _logger.WriteError(message);
             }
         }
     }
 
-    class DefiniteConsoleLogWritter : ILogger
+    class CompositeLogWritter : ILogger
     {
         private readonly ILogger[] _loggers;
 
-        public DefiniteConsoleLogWritter(params ILogger[] loggers)
+        public CompositeLogWritter(params ILogger[] loggers)
         {
             _loggers = loggers;
         }
@@ -98,6 +96,7 @@ namespace Логирование
             }
         }
     }
+
     static class File
     {
         public static void WriteAllText(string file, string message)
