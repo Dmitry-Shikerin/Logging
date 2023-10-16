@@ -6,14 +6,21 @@ namespace Логирование
     {
         static void Main(string[] args)
         {
-            // подумать над названиями
+            DayOfWeek dayOfWeek = DayOfWeek.Friday;
+
+            ILogger fileLogWriter = new FileLogWritter();
+            ILogger consoleLogWriter = new ConsoleLogWritter();
+            ILogger dayOfWeekFileLogWriter = new DayOfWeekLogWriter(fileLogWriter, dayOfWeek);
+            ILogger dayOfWeekConsoleLogWriter = new DayOfWeekLogWriter(consoleLogWriter, dayOfWeek);
+            ILogger compositeLogWriter = new CompositeLogWritter(consoleLogWriter, dayOfWeekFileLogWriter);
+
             ILogger[] loggers = new ILogger[] 
             {
-                new FileLogWritter(),
-                new ConsoleLogWritter(),
-                new DayOfWeekLogWriter(new ConsoleLogWritter(), DayOfWeek.Friday),
-                new DayOfWeekLogWriter(new FileLogWritter(), DayOfWeek.Friday),
-                new CompositeLogWritter(new ConsoleLogWritter(), new DayOfWeekLogWriter(new FileLogWritter(), DayOfWeek.Friday)),
+                fileLogWriter,
+                consoleLogWriter,
+                dayOfWeekConsoleLogWriter,
+                dayOfWeekFileLogWriter,
+                compositeLogWriter,
             };
 
             foreach (ILogger logger in loggers)
